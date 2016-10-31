@@ -1,0 +1,9 @@
+{
+  "name": "fantasy",
+  "dependencies": {},
+  "globalDependencies": {
+    "body-parser": "registry:dt/body-parser#0.0.0+20160619023215",
+    "errorhandler": "registry:dt/errorhandler#0.0.0+20160316155526",
+    "method-override": "registry:dt/method-override#0.0.0+20160925094606"
+  }
+}

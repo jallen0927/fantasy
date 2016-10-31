@@ -1,0 +1,44 @@
+{
+  "name": "fantasy",
+  "version": "1.0.0",
+  "description": "Fantasy",
+  "main": "app.js",
+  "scripts": {
+    "start": "tsc && concurrently \"tsc -w\" \"gulp\"",
+    "test": "eslint src",
+    "typings": "typings"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jallen0927/fantasy.git"
+  },
+  "keywords": [
+    "fantasy"
+  ],
+  "author": "Shawn Lin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jallen0927/fantasy/issues"
+  },
+  "homepage": "https://github.com/jallen0927/fantasy#readme",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "errorhandler": "^1.4.3",
+    "express": "^4.14.0",
+    "jade": "^1.11.0",
+    "method-override": "^2.3.6",
+    "mongodb": "^2.2.11",
+    "mongoose": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/express": "^4.0.33",
+    "@types/mongodb": "^2.1.33",
+    "@types/node": "^6.0.46",
+    "browser-sync": "^2.17.5",
+    "concurrently": "^3.1.0",
+    "gulp": "^3.9.1",
+    "gulp-nodemon": "^2.2.1",
+    "lite-server": "^2.2.2",
+    "typings": "^1.5.0"
+  }
+}
