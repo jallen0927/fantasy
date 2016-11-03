@@ -8,8 +8,10 @@ var gulp = require('gulp'),
 gulp.task('browser-sync', ['nodemon'], function() {
     browserSync.init(null, {
         proxy: "http://localhost:3000",
-        files: ["**/*.js"],
-        // browser: "google chrome",
+        files: [
+            "**/*.js",
+            "**/*.pug"
+        ],
         port: 8000,
         notify: true
     });
