@@ -28,26 +28,22 @@ class TNZResponse {
 }
 
 const fetchRecords = function(link: string): Promise<TNZResponse> {
-    let urlObj: Url = url.parse(link);
-
-    let options = {
-        host: urlObj.host,
-        path: urlObj.path,
-        headers: {
-
-        }
-    };
+    let urlObj: Url = url.parse(link),
+        options = {
+            host: urlObj.host,
+            path: urlObj.path,
+            headers: {
+                Authorization: 'Bearer ' + process.env.AUTH_KEY
+            }
+        };
     return new Promise((resolve, reject) => {
-        console.log(options);
         http.get(options, (res) => {
             let content = '';
             res.setEncoding('utf8');
             res.on('data', (chunk) => {
-                console.log(chunk);
                 content += chunk
             });
             res.on('end', () => {
-                console.log(content);
                 resolve(JSON.parse(content));
             });
         }).on('error', (e) => {

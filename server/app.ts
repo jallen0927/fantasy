@@ -1,10 +1,13 @@
 import * as express from 'express';
 import * as path from 'path';
+import * as dotenv from 'dotenv';
 import errorHandler = require("errorhandler");
 import methodOverride = require("method-override");
 import { MongoClient }  from 'mongodb';
 
 import * as routes from "./routes/index";
+
+dotenv.config();
 
 const app = express();
 
