@@ -1,35 +1,68 @@
 import * as http from 'http';
+import * as url from 'url';
 import * as express from 'express';
 import app from '../app';
+
 import {error} from "util";
+import {resolve} from "url";
+import {Url} from "url";
 
-let options = {
-    host: 'www.newzealand.com',
-    path: '/api/rest/v1/deliver/listings?tag=auckland&level=full&maxrows=10&skip=0',
-    headers: {
-    }
-};
+class TNZLink {
+    prev: string;
+    next: string;
+    last: string;
+    first: string;
+}
 
-const fetchRecords = function () {
+class TNZMeta {
+    total_items: number;
+    items_skipped: number;
+    items_retrieved: number;
+    max_items_to_retrieve: number;
+}
 
+class TNZResponse {
+    items: any[];
+    link: TNZLink;
+    meta: TNZMeta;
+}
+
+const fetchRecords = function(link: string): Promise<TNZResponse> {
+    let urlObj: Url = url.parse(link);
+
+    let options = {
+        host: urlObj.host,
+        path: urlObj.path,
+        headers: {
+
+        }
+    };
     return new Promise((resolve, reject) => {
-        http.get(options, (data) => {
+        console.log(options);
+        http.get(options, (res) => {
             let content = '';
-            data.setEncoding('utf8');
-            data.on('data', (chunk) => content += chunk);
-            data.on('end', () => {
+            res.setEncoding('utf8');
+            res.on('data', (chunk) => {
+                console.log(chunk);
+                content += chunk
+            });
+            res.on('end', () => {
+                console.log(content);
                 resolve(JSON.parse(content));
             });
+        }).on('error', (e) => {
+            reject(e);
         });
     });
 };
 
-const writeRecords = function(collectionName, data) {
+const writeRecords = function(collectionName: string, data: any[]): void {
     let collection = app.locals.db.collection(collectionName);
+
     data.forEach((item) => {
-        collection.findOne({unique_id: item.unique_id}, (err, result) => {
-            collection = app.locals.db.collection('test');
-            if(err) return console.error(err);
+        collection.findOne({o_id: item.o_id}, (e, result) => {
+            collection = app.locals.db.collection(collectionName);
+            if(e) return console.error(e);
             if(!result) {
                 collection.insertOne(item);
             }
@@ -37,16 +70,26 @@ const writeRecords = function(collectionName, data) {
     });
 };
 
+const getAllRecords = function(collectionName: string, firstLink: string): Promise<TNZResponse> {
+    return fetchRecords(firstLink)
+        .then((data: TNZResponse) => {
+            writeRecords(collectionName, data.items);
+            if(data.link.next) {
+                return fetchRecords(data.link.next);
+            }
+        }).catch((e) => console.error(e));
+};
+
 
 export function index(req: express.Request, res: express.Response) {
-    fetchRecords().then(
-        (data) => {
-            let totalNumber = data.meta.total_items;
-            console.log(totalNumber);
-            writeRecords('test', data.items);
-        }
-    ).then(
-        () => res.end('finished')
-    ).catch((error) => console.error(error));
-    // res.render('index', { title: 'fantasy' });
+    let firstLink = 'http://www.newzealand.com/api/rest/v1/deliver/tags/listingcount?sort=1&maxrows=100&skip=0';
+
+    fetchRecords(firstLink)
+        .then(
+            (res: TNZResponse) => writeRecords('tag', res.items)
+        ).then(
+            () => res.end('finished')
+        ).catch(
+            (e) => console.error(e)
+        );
 }

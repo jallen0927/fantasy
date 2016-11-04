@@ -22,7 +22,7 @@ let url = 'mongodb://localhost:27017/fantasy';
 
 MongoClient.connect(url, (err, db) => {
     if(err) {
-        console.error(err);
+        return console.error(err);
     }
     app.locals.db = db;
     app.listen(3000, function(){
