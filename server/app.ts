@@ -21,11 +21,9 @@ if (env === 'development') {
 
 app.get('/', routes.index);
 
-let url = 'mongodb://localhost:27017/fantasy';
-
-MongoClient.connect(url, (err, db) => {
-    if(err) {
-        return console.error(err);
+MongoClient.connect(process.env.DB, (e, db) => {
+    if(e) {
+        return console.error(e);
     }
     app.locals.db = db;
     app.listen(3000, function(){
