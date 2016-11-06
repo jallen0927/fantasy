@@ -35,6 +35,10 @@ class TNZTag {
     listing_count: number;
     name_key: string;
     market: string;
+
+    constructor(name_key: string) {
+        this.name_key = name_key;
+    }
 }
 
 class TNZResponse {
@@ -68,7 +72,13 @@ const fetchRecords = function(link: string): Promise<TNZResponse> {
                 content += chunk
             });
             res.on('end', () => {
-                resolve(JSON.parse(content));
+                try {
+                    let data = JSON.parse(content);
+                    resolve(data);
+                } catch(e) {
+                    reject(e);
+                }
+
             });
         }).on('error', (e) => {
             reject(e);
@@ -126,10 +136,12 @@ const getCollectionRecords = function(collectionName: string, firstLink: string)
         ).catch((e) => console.error(e));
 };
 
-const getListingsByTag = function(tag: TNZTag): Promise<any[]> {
+const getListingsByTag = function(tag: TNZTag, skip: number = 0): Promise<any[]> {
     return new Promise((resolve, reject) => {
         if(tag.name_key === 'auckland') return;
-        let firstLink = 'http://www.newzealand.com/api/rest/v1/deliver/listings?level=full&maxrows=30&skip=0&tag=' + tag.name_key;
+        let firstLink = 'http://www.newzealand.com/api/rest/v1/deliver/listings?level=full&maxrows=30&skip=' + skip + '&tag=' + tag.name_key;
+
+
         getCollectionRecords('listing', firstLink)
             .then(
                 (listings) => resolve(listings),
@@ -138,14 +150,13 @@ const getListingsByTag = function(tag: TNZTag): Promise<any[]> {
     });
 };
 
-const getListings = function(): Promise<any[]> {
+const getListingsConcurrent = function(): Promise<any[]> {
     let collection = locals.db.collection('tag');
 
     return new Promise((resolve, reject) => {
         collection.find().toArray((e, tags: TNZTag[]) => {
             let promises: Promise<any>[] = [];
             tags.forEach((tag) => {
-                if(tag.name_key === 'auckland') return;
                 promises.push(getListingsByTag(tag))
             });
 
@@ -158,11 +169,43 @@ const getListings = function(): Promise<any[]> {
     });
 };
 
+const getListings = function(): Promise<any[]> {
+    let collection = locals.db.collection('tag');
 
-export function index() {
+    return new Promise((resolve, reject) => {
+        collection.find().toArray((e, tags: TNZTag[]) => {
+            let p = getListingsByTag(tags[0]);
+            for (let i = 1; i < tags.length; i ++) {
+                p.then(
+                    () => getListingsByTag(tags[0])
+                ).catch(
+                    (e) => reject(e)
+                );
+            }
+            p.then(() => resolve);
+        });
+    });
+};
+
+
+export function launch(): void {
     let tagLink = 'http://www.newzealand.com/api/rest/v1/deliver/tags/listingcount?sort=1&maxrows=200&skip=0',
         regionLink = 'http://www.newzealand.com/api/rest/v1/deliver/regions/?level=simple&maxrows=50&skip=0';
-    getCollectionRecords('region', regionLink)
+
+    // getCollectionRecords('tag', tagLink)
+    //     .then(
+    //         () => {
+    //             console.log('finished');
+    //             locals.db.close();
+    //             process.exit();
+    //         }
+    //     ).catch(
+    //         (e) => console.error(e);
+    //         locals.db.close();
+    //         process.exit();
+    //     );
+
+    getListingsByTag(new TNZTag('new-zealand-based-operator'), 0)
         .then(
             () => {
                 console.log('finished');
@@ -170,21 +213,18 @@ export function index() {
                 process.exit();
             }
         ).catch(
-            (e) => console.error(e)
+            (e) => {
+                console.error(e);
+                locals.db.close();
+                process.exit();
+            }
         );
-
-    // return getListings()
-    //     .then(
-    //         () => console.log('finished')
-    //     ).catch(
-    //         (e) => console.error(e)
-    //     );
 }
 
 MongoClient.connect(process.env.DB, (e, db) => {
     if(e) return console.error(e);
     locals.db = db;
-    index();
+    launch();
 });
 
 
