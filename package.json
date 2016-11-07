@@ -4,8 +4,8 @@
   "description": "Fantasy",
   "main": "app.js",
   "scripts": {
-    "start": "tsc && node server/app.js",
-    "dev": "tsc && concurrently \"tsc -w\" \"gulp\"",
+    "start": "tsc && webpack && node server/app.js",
+    "dev": "tsc && concurrently \"tsc -w\" \"webpack --watch --progress --color\" \"gulp\"",
     "fetch": "tsc && node server/tasks/fetcher.js",
     "test": "eslint src",
     "typings": "typings"
@@ -37,6 +37,7 @@
     "mongodb": "^2.2.11",
     "mongoose": "^4.6.5",
     "pug": "^2.0.0-beta6",
+    "reflect-metadata": "^0.1.8",
     "rxjs": "^5.0.0-beta.12",
     "zone.js": "^0.6.26"
   },

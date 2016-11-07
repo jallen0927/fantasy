@@ -3,3 +3,7 @@ extends layout
 block mainContent
     h1= title
     p Welcome to #{title}
+    app Loading
+    script(type='text/javascript' src='/lib/zone.js/dist/zone.min.js')
+    script(type='text/javascript' src='/lib/reflect-metadata/Reflect.js')
+    script(type='text/javascript' src='/app/main.bundle.js')

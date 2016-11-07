@@ -2,6 +2,7 @@ node_modules
 typings
 *.js.map
 server/**/*.js
+client/**/*.js
 dist
 *.log
 .env
